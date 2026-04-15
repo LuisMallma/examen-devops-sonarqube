@@ -6,16 +6,24 @@ pipeline {
                 checkout scm
             }
         }
-        stage('Análisis de SonarCloud') {
+        stage('Análisis y Quality Gate (Aduana)') {
             steps {
-                echo "Enviando código a SonarCloud..."
-                
+                script {
+                    // 1. Llamamos a la herramienta instalada en el Paso 14
+                    def scannerHome = tool 'sonar-scanner'
+                    
+                    // 2. Usamos la conexión a SonarCloud creada en el Paso 13
+                    withSonarQubeEnv('SonarCloud') {
+                        // 3. Ejecutamos el análisis. El "wait=true" es el bloqueo automático.
+                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=LuisMallma_examen-devops-sonarqube -Dsonar.organization=luismallma -Dsonar.host.url=https://sonarcloud.io -Dsonar.qualitygate.wait=true"
+                    }
+                }
             }
         }
-        stage('Quality Gate Check') {
+        stage('Despliegue a Producción') {
             steps {
-                echo "Revisando si la aduana permite pasar el código..."
-                
+                echo "✅ ¡ÉXITO! El código es limpio y pasó el Quality Gate."
+                echo "Iniciando despliegue de infraestructura inmutable..."
             }
         }
     }
